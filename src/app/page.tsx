@@ -4,6 +4,8 @@ import { useState } from "react";
 import PatientForm from "@/app/patient/PatientForm";
 import AllergyForm from "@/app/allergy/AllergyForm";
 import ConditionForm from "@/app/condition/ConditionForm";
+import ImmunizationForm from "@/app/immunization/ImmunizationForm"; 
+import VitalSignsForm from "@/app/vitalsigns/VitalSignsForm"; 
 
 // 共用 Tab 按鈕元件
 function Tabs({
@@ -37,6 +39,11 @@ export default function MainPage() {
   const [patientData, setPatientData] = useState<any>(null);
   const [allergyData, setAllergyData] = useState<any>(null);
   const [conditionData, setConditionData] = useState<any>(null);
+  const [immunizationData, setImmunizationData] = useState<any>(null);
+  const [vitalSignsData, setVitalSignsData] = useState<any>(null);
+
+
+
 
   const handlePatientSubmit = (data: any) => {
     console.log("父層收到病患資料:", data);
@@ -52,12 +59,19 @@ export default function MainPage() {
     console.log("父層收到病情資料:", data);
     setConditionData(data);
   };
+  const handleImmunizationSubmit = (data: any) => setImmunizationData(data);
 
+  const handleVitalSignsSubmit = (data: any) => {
+  console.log("父層收到生命體徵資料:", data);
+  setVitalSignsData(data);
+};
   const handleExport = () => {
     const allData = {
       patient: patientData,
       allergy: allergyData,
       condition: conditionData,
+      immunization: immunizationData,
+      vitalsigns: vitalSignsData,
     };
 
     console.log("全部資料：", allData);
@@ -77,7 +91,9 @@ export default function MainPage() {
   const tabs = [
     { key: "patient", label: "病患資料" },
     { key: "allergy", label: "過敏原" },
-    { key: "condition", label: "病情資料" },
+    { key: "condition", label: "病況資料" },
+    { key: "immunization", label: "施打疫苗" },
+    { key: "vitalsigns", label: "生命體徵" },
   ];
 
   return (
@@ -104,6 +120,19 @@ export default function MainPage() {
             onSubmitData={handleConditionSubmit}
           />
         )}
+        {activeTab === "immunization" && (
+          <ImmunizationForm 
+          patientId="example-patient-id" 
+          onSubmitData={handleImmunizationSubmit} 
+          />
+        )}
+        {activeTab === "vitalsigns" && (
+          <VitalSignsForm
+            patientId="example-patient-id"
+            onSubmitData={handleVitalSignsSubmit}
+            />
+        )}
+
       </div>
 
       {/* 完成按鈕 */}

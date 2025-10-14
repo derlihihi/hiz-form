@@ -535,12 +535,6 @@ export const snomedConditions = [
     text: "急性中耳炎"
   },
   {
-    code: "3119002",
-    system: "http://snomed.info/sct",
-    display: "Brain stem laceration with open intracranial wound AND loss of consciousness",
-    text: "腦幹撕裂傷伴開放性顱內傷口及意識喪失"
-  },
-  {
     code: "3218000",
     system: "http://snomed.info/sct",
     display: "Mycosis",
