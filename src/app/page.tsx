@@ -53,7 +53,26 @@ export default function MainPage() {
     setConditionData(data);
   };
 
-  const handleExport = () => {
+  // const handleExport = () => {
+  //   const allData = {
+  //     patient: patientData,
+  //     allergy: allergyData,
+  //     condition: conditionData,
+  //   };
+
+  //   console.log("全部資料：", allData);
+
+  //   const blob = new Blob([JSON.stringify(allData, null, 2)], {
+  //     type: "application/json",
+  //   });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = "fhir-data.json";
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+  // };
+const handleExport = async () => {
     const allData = {
       patient: patientData,
       allergy: allergyData,
@@ -62,15 +81,28 @@ export default function MainPage() {
 
     console.log("全部資料：", allData);
 
-    const blob = new Blob([JSON.stringify(allData, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "fhir-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${API_URL}/ips/convert`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(allData),
+        });
+
+      if (!res.ok) {
+        throw new Error(`Server Error: ${res.status}`);
+      }
+
+      const result = await res.json();
+      console.log("後端回傳結果：", result);
+      alert("資料已成功送出並轉換！");
+    } catch (err) {
+      console.error("傳送失敗：", err);
+      alert("送出失敗，請檢查後端是否啟動！");
+    }
   };
 
   // Tab 設定
