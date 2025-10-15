@@ -14,8 +14,8 @@ type ConditionItem = {
   severity: string;
   code: string;
   display: string;
-  subject: { reference: string };
   onsetDateTime: string;
+  text?: string;
 };
 
 // ✅ 中英文對照表
@@ -40,39 +40,45 @@ const severityOptions = [
 ];
 
 export default function ConditionForm({ patientId, onSubmitData }: ConditionFormProps) {
-  const [conditionList, setConditionList] = useState<ConditionItem[]>([
-    {
-      clinicalStatus: "",
-      category: "",
-      severity: "",
-      code: "",
-      display: "",
-      subject: { reference: `Patient/${patientId}` },
-      onsetDateTime: "",
-    },
-  ]);
+  const [conditionList, setConditionList] = useState<ConditionItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
-  // ✅ 載入 localStorage
+  // ✅ 首次載入 localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("conditionList");
-    if (saved) setConditionList(JSON.parse(saved));
-  }, []);
+    const saved = localStorage.getItem(`conditionList-${patientId}`);
+    if (saved) {
+      setConditionList(JSON.parse(saved));
+    } else {
+      setConditionList([
+        {
+          clinicalStatus: "",
+          category: "",
+          severity: "",
+          code: "",
+          display: "",
+          onsetDateTime: "",
+        },
+      ]);
+    }
+    setHydrated(true);
+  }, [patientId]);
 
   // ✅ 更新時存到 localStorage
   useEffect(() => {
-    localStorage.setItem("conditionList", JSON.stringify(conditionList));
-  }, [conditionList]);
+    if (hydrated) {
+      localStorage.setItem(`conditionList-${patientId}`, JSON.stringify(conditionList));
+    }
+  }, [conditionList, hydrated, patientId]);
 
   const handleChange = (index: number, e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     const newList = [...conditionList];
 
-    if (name === "subject.reference") {
-      newList[index].subject = { reference: value };
-    } else if (name === "code") {
+    if (name === "code") {
       const selected = snomedConditions.find((c) => c.code === value);
       newList[index].code = value;
       newList[index].display = selected ? selected.display : "";
+      newList[index].text = selected ? selected.text : ""; // 加上這行
     } else {
       (newList[index] as any)[name] = value;
     }
@@ -89,7 +95,6 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
         severity: "",
         code: "",
         display: "",
-        subject: { reference: `Patient/${patientId}` },
         onsetDateTime: "",
       },
     ]);
@@ -138,6 +143,10 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
     alert("病況資料已送出");
   };
 
+  if (!hydrated) {
+    return <p className="text-gray-500">載入中...</p>;
+  }
+
   return (
     <div className="max-w-3xl mx-auto my-6 p-6 border rounded-lg shadow bg-white">
       <h2 className="text-xl font-bold text-center mb-6">病況表單</h2>
@@ -146,7 +155,7 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
         {conditionList.map((item, index) => (
           <fieldset key={index} className="border p-4 rounded space-y-4">
             <legend className="font-semibold">
-              {item.display ? `病況：${item.display}` : `病況紀錄 ${index + 1}`}
+              {item.display ?`病況： ${item.display}${item.text ? " "+item.text:""}` : `病況紀錄 ${index + 1}`}
             </legend>
 
             <div className="grid grid-cols-2 gap-4">
@@ -160,7 +169,7 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
                   required
                   className="w-full"
                 >
-                  <option value="">請選擇 SNOMED CT</option>
+                  <option value="">請選擇病況</option>
                   {snomedConditions.map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.display} {c.text} ({c.code})
@@ -208,26 +217,20 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
                 </select>
               </label>
 
-              {/* 發病時間 */}
+              {/* 發病日期 */}
               <label>
-                發病時間
+                發病日期
                 <input
-                  type="datetime-local"
+                  type="date"
                   name="onsetDateTime"
                   value={item.onsetDateTime}
                   onChange={(e) => handleChange(index, e)}
                 />
               </label>
-
-              {/* 患者 Reference - 獨佔一行 */}
-              <label className="col-span-2">
-                患者參照
-                <input type="text" name="subject.reference" value={item.subject.reference} disabled className="w-full" />
-              </label>
             </div>
 
             {conditionList.length > 1 && (
-              <div className="col-span-2">
+              <div className="col-span-2 flex justify-end">
                 <button
                   type="button"
                   className="bg-red-500 px-3 py-1 text-white rounded"
@@ -241,7 +244,7 @@ export default function ConditionForm({ patientId, onSubmitData }: ConditionForm
         ))}
 
         {/* 操作按鈕 */}
-        <div className="flex gap-3 mt-4 justify-center">
+        <div className="flex gap-3 mt-4 justify-end">
           <button type="button" className="bg-green-500 px-4 py-2 text-white rounded" onClick={addCondition}>
             新增病況
           </button>

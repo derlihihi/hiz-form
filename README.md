@@ -4,7 +4,7 @@
 ```bash
 git clone <repository-url>
 ```
-### 2. 移動到資料夾
+### 2. 移動到該資料夾
 ```bash
 cd HIZ/hiz-form
 ```
